@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="description"
-        content="RoboCurate: A neural trajectory generation and filtering framework that increases diversity via controllable video generation and filters low-quality samples.">
-  <meta name="keywords" content="RoboCurate, robot learning, data augmentation, video generation, action filtering">
+        content="RoboCurate: a framework for action-verified synthetic robot data that replays IDM-predicted actions in a simulator and keeps only samples whose motion matches the generated video.">
+  <meta name="keywords" content="RoboCurate, robot learning, synthetic data, video generation, action verification, data curation">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RoboCurate: Harnessing Diversity with Action-Verified Neural Trajectory for Robot Learning</title>
+  <title>RoboCurate: Harnessing Diversity with Action-Verified Synthetic Data for Robot Learning</title>
 
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
         rel="stylesheet">
@@ -152,47 +152,185 @@
       color: #4a4a4a;
     }
 
-    /* Action alignment 2-column layout */
+    /* Action alignment videos + probe pairs: equal-height 2-column layout.
+       Column widths are proportional to each column's aspect ratio
+       (two stacked 768x216 videos = 1.778; probe figure 1666x1086 = 1.534),
+       so both columns render at the same height; 1.731 (not 1.778)
+       absorbs the 6px gap between the two videos. */
     .action-overview-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      align-items: stretch;
+      grid-template-columns: 1.731fr 1.534fr;
+      column-gap: 16px;
+      row-gap: 6px;
+      align-items: center;
+      margin-top: 1.75rem;
     }
     .action-overview-grid .action-col {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      justify-content: center;
+      gap: 6px;
+    }
+    .action-overview-grid .action-item {
+      position: relative;
     }
     .action-overview-grid .action-item video {
       width: 100%;
       border-radius: 8px;
       display: block;
     }
-    .action-overview-grid .action-item .caption,
-    .action-overview-grid .data-col .caption {
+    .action-overview-grid .verdict {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      font-family: 'Google Sans', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .action-overview-grid .verdict.kept    { background: rgba(72,199,142,0.92); }
+    .action-overview-grid .verdict.dropped { background: rgba(241,70,104,0.92); }
+    .action-overview-grid .data-col img {
+      width: 100%;
+      display: block;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .action-overview-grid .caption {
       font-family: 'Google Sans', sans-serif;
       font-size: 0.85rem;
       color: #555;
       text-align: center;
-      margin-top: 4px;
-      white-space: nowrap;
+      align-self: start;
     }
-    .action-overview-grid .data-col {
+
+    /* Scene diversification: text blocks beside the tall figure */
+    .scene-split {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 28px;
+      align-items: start;
+    }
+    .scene-split .method-figure {
+      margin-top: 0;
+    }
+    .axis-chips {
       display: flex;
-      flex-direction: column;
-      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 0.25rem 0 1.25rem;
     }
-    .action-overview-grid .data-col img {
-      width: 100%;
+    .axis-chips span {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 0.85rem;
+      background: #fff;
+      border: 1px solid #dbdbdb;
+      border-radius: 999px;
+      padding: 2px 12px;
+      color: #363636;
+    }
+    .level-card {
+      background: #fff;
+      border-left: 4px solid hsl(204, 86%, 53%);
+      border-radius: 0 8px 8px 0;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .level-card .level-title {
+      font-family: 'Google Sans', sans-serif;
+      font-weight: 700;
+      color: #363636;
+      margin-bottom: 0.2rem;
+    }
+    .content .level-card p,
+    .level-card p {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+    .content .scene-split p.sub-label,
+    .scene-split .sub-label {
+      font-family: 'Google Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #7a7a7a;
+      margin-bottom: 0.25rem;
+    }
+
+    /* TL;DR line under the main figure */
+    .tldr {
+      max-width: 860px;
+      margin: 1.25rem auto 0;
+      font-size: 1.05rem;
+      color: #363636;
+      text-align: center;
+    }
+
+    .method-figure.is-medium {
+      display: block;
+      max-width: 72%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Takeaways */
+    .takeaways {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      counter-reset: tk;
+    }
+    .takeaways li {
+      counter-increment: tk;
+      position: relative;
+      padding: 1rem 1.25rem 1rem 3.25rem;
+      margin-bottom: 0.75rem;
+      background: #f5f7fa;
       border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      color: #4a4a4a;
+    }
+    .takeaways li::before {
+      content: counter(tk);
+      position: absolute;
+      left: 1rem;
+      top: 1rem;
+      width: 1.6rem;
+      height: 1.6rem;
+      border-radius: 50%;
+      background: hsl(204, 86%, 53%);
+      color: #fff;
+      font-weight: 700;
+      font-family: 'Google Sans', sans-serif;
+      text-align: center;
+      line-height: 1.6rem;
+      font-size: 0.9rem;
+    }
+    .takeaways li strong {
+      display: block;
+      font-family: 'Google Sans', sans-serif;
+      color: #363636;
+      margin-bottom: 0.2rem;
     }
 
     @media (max-width: 768px) {
-      .action-overview-grid {
+      .action-overview-grid,
+      .scene-split {
         grid-template-columns: 1fr;
+      }
+      /* stacked: keep each caption under its own media */
+      .action-overview-grid .action-col  { order: 1; }
+      .action-overview-grid .cap-videos  { order: 2; }
+      .action-overview-grid .data-col    { order: 3; margin-top: 1rem; }
+      .action-overview-grid .cap-pairs   { order: 4; }
+      .scene-split .method-figure {
+        max-width: 320px;
+        margin: 0 auto;
+      }
+      .method-figure.is-medium {
+        max-width: 100%;
       }
     }
   </style>
@@ -206,12 +344,12 @@
     <div class="container is-max-desktop">
       <div class="columns is-centered">
         <div class="column has-text-centered">
-          <h1 class="title is-1 publication-title"><span class="robocurate">RoboCurate</span>: Harnessing Diversity with Action-Verified Neural Trajectory for Robot Learning</h1>
+          <h1 class="title is-1 publication-title"><span class="robocurate">RoboCurate</span>: Harnessing Diversity with Action-Verified Synthetic Data for Robot Learning</h1>
           <div class="is-size-5 publication-authors">
             <span class="author-block">
               Seungku Kim<sup>*1</sup>,</span>
             <span class="author-block">
-              Suhyeok Jang<sup>*1</sup>,</span>
+              Suhyeok Jang<sup>*1,2</sup>,</span>
             <span class="author-block">
               Byungjun Yoon<sup>1</sup>,</span>
             <span class="author-block">
@@ -257,9 +395,12 @@
 <section class="hero is-light is-small">
   <div class="hero-body">
     <div class="container is-max-desktop has-text-centered main-figure">
-      <img src="./static/images/robocurate_main_figure.png"
-           alt="RoboCurate overview figure"
+      <img src="./static/images/robocurate_overview.jpg"
+           alt="RoboCurate overview: scene diversification of real demonstrations via I2I/V2V editing, followed by action-verified filtering that replays IDM-predicted actions in a physics simulator and classifies motion consistency with an attentive probe"
            style="width:100%;">
+      <p class="tldr">
+        <strong>TL;DR:</strong> <span class="robocurate">RoboCurate</span> verifies the action labels of synthetic robot videos by replaying them in a simulator and keeping only samples whose motion matches the generated video.
+      </p>
     </div>
   </div>
 </section>
@@ -273,7 +414,7 @@
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
           <p>
-            We present <span class="robocurate">RoboCurate</span>, a novel neural trajectory generation framework that increases diversity via controllable video generation and filters low-quality samples by evaluating motion similarity between generated video and simulator replay. Specifically, <span class="robocurate">RoboCurate</span> replays the predicted actions in a simulator and assesses action quality by measuring the consistency of motion between the simulator rollout and the generated video. In addition, we unlock observation diversity beyond the available dataset via image-to-image editing and apply action-preserving video-to-video transfer to further augment appearance.
+            We present <span class="robocurate">RoboCurate</span>, a novel framework for action-verified synthetic robot data that addresses inconsistencies between generated videos and annotated actions. Specifically, <span class="robocurate">RoboCurate</span> executes the actions predicted by an inverse dynamics model (IDM) in a simulator and verifies action consistency by measuring the motion agreement between the simulator rollout and the generated video. To better leverage such a framework, we further expand the scene diversity of synthetic data beyond the available dataset through off-the-shelf generative models with structured editing axes. We then use a VLM to pre-filter physically implausible generated videos before verifying their action labels.
           </p>
         </div>
       </div>
@@ -291,45 +432,74 @@
         <div class="content has-text-justified">
 
           <div class="method-step">
-            <p class="step-title">1.&ensp;Generation Stage</p>
+            <p class="step-title">1.&ensp;Action-Verified Filtering via Simulator Replay</p>
             <p>
-              We expand observation diversity with two components: (1) image-to-image (I2I) editing on the initial frame for scene-level variation, and (2) video-to-video (V2V) transfer for appearance diversity while preserving initial motion.
+              We filter synthetic data with inaccurate actions by replaying the IDM-predicted actions in a physics simulator, which turns action verification into a motion-consistency comparison between the simulator rollout and the generated video. We train an attentive probe on top of a frozen video encoder (V-JEPA 2) to classify whether the two videos show the same motion, and retain only samples classified as consistent. Before this check, we use a VLM to discard generated videos whose robot arm and end-effector motion is physically implausible.
             </p>
-            <img class="method-figure" src="./static/images/robocurate_stage1_generation.png"
-                 alt="Generation stage overview">
+            <img class="method-figure is-medium" src="./static/images/action_verified_filtering.jpg"
+                 alt="Action-verified filtering: IDM-predicted actions are replayed in a physics simulator, and an attentive probe on a frozen video encoder classifies whether the simulator replay and generated video are motion-consistent">
           </div>
-
-          <div class="method-step">
-            <p class="step-title">2.&ensp;Filtering Stage</p>
-            <p>
-              We filter suboptimal synthetic trajectories with inaccurate actions by replaying the predicted actions in a simulator and assessing action quality by measuring the consistency of motion between the simulator rollout and the generated video. We train an attentive probe on top of a frozen video encoder to measure motion similarity between the simulator rollout and the generated video with automatically generated positive and negative samples from real data.
-            </p>
-            <img class="method-figure" src="./static/images/robocurate_stage2_filtering.png"
-                 alt="Filtering stage overview">
-          </div>
-
         </div>
 
-        <!-- Action alignment & data overview 2-column -->
-        <div class="action-overview-grid" style="max-width: 100%;">
+        <!-- Action alignment & probe training data 2-column -->
+        <div class="action-overview-grid">
           <div class="action-col">
             <div class="action-item">
               <video autoplay muted loop playsinline>
                 <source src="./videos/good_action_alignment.mp4" type="video/mp4">
               </video>
-              <p class="caption">Accurate action: Simulator rollout ≈ Synthetic video</p>
+              <span class="verdict kept">Consistent &rarr; kept</span>
             </div>
             <div class="action-item">
               <video autoplay muted loop playsinline>
                 <source src="./videos/bad_action_alignment.mp4" type="video/mp4">
               </video>
-              <p class="caption">Inaccurate action: Simulator rollout ≠ Synthetic video</p>
+              <span class="verdict dropped">Inconsistent &rarr; discarded</span>
             </div>
           </div>
           <div class="data-col">
-            <img src="./static/images/data_overview.png"
-                 alt="Examples of positive and negative pairs for attentive probe training">
-            <p class="caption">Examples of positive and negative pairs for attentive probe training.</p>
+            <img src="./static/images/probe_train_data.jpg"
+                 alt="Positive and negative pairs for attentive probe training: a positive pair is same-episode and time-aligned; negatives break episode identity, temporal alignment, or both">
+          </div>
+          <p class="caption cap-videos">Generated video (left) vs. simulator replay of its IDM-predicted actions (right).</p>
+          <p class="caption cap-pairs">Positive and negative pairs for attentive probe training.</p>
+        </div>
+
+        <div class="content has-text-justified" style="margin-top:1.5rem;">
+          <p>
+            We train the probe without human labels, using positive and negative pairs automatically constructed from real demonstrations. A positive pair consists of a real video and the simulator replay of its own ground-truth actions. Negative pairs replace the replay with one from a different time in the same episode (temporal shift), from a different episode of the same skill (cross-episode), or both. Together, these negatives encourage the probe to detect fine-grained trajectory differences rather than rely on task-level cues.
+          </p>
+          <p>
+            Beyond post-hoc filtering, the probe can also serve as a critic at generation time via <strong>Best-of-N sampling</strong>: we sample N candidate videos with their IDM-predicted actions, apply the VLM pre-filter, and select the pair with the highest motion-consistency score. This is particularly useful in data-scarce fine-tuning settings, where data collection is constrained to a specific target task.
+          </p>
+
+          <div class="method-step" style="margin-top:2rem;">
+            <p class="step-title">2.&ensp;Scene Diversification of Synthetic Data</p>
+            <div class="scene-split">
+              <div>
+                <p>
+                  The effectiveness of our filtering fundamentally depends on the diversity of the synthetic data, yet videos generated from real initial frames inherit the limited scene diversity of the real data. We therefore decompose a manipulation scene into four editing components and vary one while preserving the rest.
+                </p>
+                <p class="sub-label">Editing components</p>
+                <div class="axis-chips">
+                  <span>Table</span><span>Target object</span><span>Lighting</span><span>Background</span>
+                </div>
+                <p class="sub-label">Two complementary levels</p>
+                <div class="level-card">
+                  <p class="level-title">Image-to-image (I2I) editing</p>
+                  <p>Edit the initial frame for scene-level variation, then generate new trajectories from the edited scene.</p>
+                </div>
+                <div class="level-card">
+                  <p class="level-title">Video-to-video (V2V) transfer</p>
+                  <p>Restyle an already generated video for appearance diversity while preserving its motion, so its IDM-predicted action labels can be reused.</p>
+                </div>
+                <p style="margin-top:1rem;">
+                  Both levels use off-the-shelf generative models and are conditioned on Canny edge maps to preserve the original scene structure.
+                </p>
+              </div>
+              <img class="method-figure" src="./static/images/scene_task_diversification.jpg"
+                   alt="Scene diversification: a real robot demonstration is edited via I2I/V2V along object, table, lighting, and background axes to produce diverse synthesized videos">
+            </div>
           </div>
         </div>
 
@@ -344,14 +514,21 @@
   <div class="container is-max-desktop">
     <h2 class="title is-3 has-text-centered">Results</h2>
 
-    <h3 class="title is-4 has-text-centered" style="margin-bottom:0.5rem;">ALLEX Humanoid Robot</h3>
+    <h3 class="title is-4 has-text-centered" style="margin-bottom:0.5rem;">Real-World Humanoids (Co-finetuning)</h3>
+    <div class="columns is-centered">
+      <div class="column is-four-fifths">
+        <p class="content has-text-justified">
+          We co-finetune on real and synthetic data on two humanoids with dexterous hands, ALLEX and OpenArm. Real demonstrations are collected only for the in-distribution task, while novel-object and novel-behavior tasks use synthetic data only. <span class="robocurate">RoboCurate</span>* denotes Best-of-N sampling (4 candidates) using our probe as a critic, without scene diversification. Videos below show the ALLEX humanoid (24 trials per task).
+        </p>
+      </div>
+    </div>
 
     <!-- Row 1: In-distribution – Pick and Place Can -->
     <p class="row-label"><strong>In-distribution task</strong> &mdash; Pick and Place Can</p>
     <div class="grid-header">
       <span>Real</span>
       <span>Real + DreamGen</span>
-      <span class="ours-highlight">Real + <span class="robocurate">RoboCurate</span> (Ours)</span>
+      <span class="ours-highlight">Real + <span class="robocurate">RoboCurate</span>* (Ours)</span>
     </div>
     <div class="video-grid">
       <div class="video-cell">
@@ -379,7 +556,7 @@
     <div class="grid-header">
       <span>Real</span>
       <span>Real + DreamGen</span>
-      <span class="ours-highlight">Real + <span class="robocurate">RoboCurate</span> (Ours)</span>
+      <span class="ours-highlight">Real + <span class="robocurate">RoboCurate</span>* (Ours)</span>
     </div>
     <div class="video-grid">
       <div class="video-cell">
@@ -407,7 +584,7 @@
     <div class="grid-header">
       <span>Real</span>
       <span>Real + DreamGen</span>
-      <span class="ours-highlight">Real + <span class="robocurate">RoboCurate</span> (Ours)</span>
+      <span class="ours-highlight">Real + <span class="robocurate">RoboCurate</span>* (Ours)</span>
     </div>
     <div class="video-grid">
       <div class="video-cell">
@@ -429,6 +606,14 @@
         <span class="outcome-badge outcome-success">Success</span>
       </div>
     </div>
+
+    <div class="columns is-centered">
+      <div class="column is-four-fifths">
+        <div class="observation">
+          On ALLEX, our synthetic data enables the policy to perform a novel behavior that the real-data-only baseline cannot achieve (Pour Can: 0.0% &rarr; 25.0%), doubling the success rate of synthetic data without Best-of-N sampling (12.5% &rarr; 25.0%). These trends also hold on OpenArm (32 trials per task), where <span class="robocurate">RoboCurate</span> yields a +42.9% average relative gain over the real-data-only baseline, with the largest gain on the novel object task (Lift Box: 6.3% &rarr; 15.6%).
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -437,15 +622,24 @@
 <section class="section has-background-light">
   <div class="container is-max-desktop">
 
+    <h3 class="title is-4 has-text-centered" style="margin-bottom:0.5rem;">Simulation Benchmarks (Pre-training)</h3>
+    <div class="columns is-centered">
+      <div class="column is-four-fifths">
+        <p class="content has-text-justified">
+          We pre-train GR00T N1.5 on real data (ActionNet, GR-1 humanoid) combined with synthetic data, and fine-tune on GR-1 Tabletop and DexMimicGen. All synthetic settings use the same 10K samples before filtering. DreamGen denotes synthetic data without our scene diversification or action-verified filtering.
+        </p>
+      </div>
+    </div>
+
     <!-- GR-1 Tabletop -->
     <div class="columns is-centered has-text-centered">
       <div class="column is-four-fifths">
-        <h3 class="title is-4">GR-1 Tabletop</h3>
+        <h3 class="title is-5">GR-1 Tabletop</h3>
         <p class="content has-text-justified" style="margin-bottom:1rem;">
-          We report the average success rate (%) over 50 trials across 24 tasks (18 rearrangement and 6 articulated).
+          Average success rate (%) over 50 trials per task across 24 tasks (18 rearrangement, 6 articulated), fine-tuned with 300 or 1000 demos.
         </p>
-        <img class="result-image" src="./static/images/gr1_tabletop_result.png"
-             alt="GR-1 Tabletop results table"
+        <img class="result-image" src="./static/images/gr1_tabletop.jpg"
+             alt="GR-1 Tabletop results: with 300 demos, average success rises from 15.4% (Real) and 19.5% (w/ DreamGen) to 22.7% (RoboCurate, unfiltered) and 29.3% (RoboCurate, filtered); with 1000 demos, from 27.9% to 34.6%"
              style="width:100%;">
       </div>
     </div>
@@ -455,12 +649,12 @@
     <!-- DexMimicGen -->
     <div class="columns is-centered has-text-centered">
       <div class="column is-four-fifths">
-        <h3 class="title is-4">DexMimicGen</h3>
+        <h3 class="title is-5">DexMimicGen</h3>
         <p class="content has-text-justified" style="margin-bottom:1rem;">
-          We report the average success rate (%) over 50 trials across 6 tasks (3 GR-1 Humanoid and 3 Bimanual Panda Arms with Dexterous Hands), trained with 100 demonstrations per task.
+          Average success rate (%) over 50 trials per task across 3 seeds on 6 tasks (3 GR-1 humanoid, 3 bimanual Panda arms with dexterous hands), fine-tuned with 100 demos per task.
         </p>
-        <img class="result-image" src="./static/images/dexmimicgen_result.png"
-             alt="DexMimicGen results table"
+        <img class="result-image" src="./static/images/dexmimicgen.jpg"
+             alt="DexMimicGen results: average success rises from 44.6% (Real) and 46.4% (w/ DreamGen) to 49.3% (RoboCurate, unfiltered) and 57.6% (RoboCurate, filtered)"
              style="width:100%;">
       </div>
     </div>
@@ -469,7 +663,7 @@
     <div class="columns is-centered">
       <div class="column is-four-fifths">
         <div class="observation">
-          We observe that our visual augmentation pipeline (e.g., I2I editing and V2V transfer) substantially improves downstream task performance. Moreover, our action-level filtering is effective for curating neural trajectories and further enhances VLA performance.
+          We observe that our scene diversification pipeline (i.e., I2I editing and V2V transfer) substantially improves downstream task performance. Moreover, our action-verified filtering is effective for curating synthetic robot data and further enhances robot policy performance, even with a smaller amount of pre-training data. Finally, our synthetic data demonstrates cross-embodiment transfer: a policy pre-trained on GR-1 humanoid synthetic data also benefits bimanual Panda arms with dexterous hands.
         </div>
       </div>
     </div>
@@ -478,12 +672,38 @@
 </section>
 
 
+<!-- Takeaways -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3 has-text-centered">Takeaways</h2>
+        <ol class="takeaways">
+          <li>
+            <strong>Action-verified filtering removes suboptimal data.</strong>
+            Training with filtered data further improves performance in both pre-training and co-finetuning setups. The filter is trained on a small amount of real data, with positive and negative pairs generated automatically (no human labels required).
+          </li>
+          <li>
+            <strong>The filter also works at generation time.</strong>
+            Used as a critic for Best-of-N sampling, it selects better-aligned synthetic samples when data is scarce.
+          </li>
+          <li>
+            <strong>Scene diversity matters.</strong>
+            Increasing the visual diversity of synthetic data leads to VLA performance gains, and our I2I editing and V2V transfer pipeline effectively enhances it.
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+
 <!-- BibTeX (placeholder) -->
-<section class="section" id="BibTeX">
+<section class="section has-background-light" id="BibTeX">
   <div class="container is-max-desktop content">
     <h2 class="title">BibTeX</h2>
     <pre><code>@article{kim2026robocurate,
-  title={RoboCurate: Harnessing Diversity with Action-Verified Neural Trajectory for Robot Learning},
+  title={RoboCurate: Harnessing Diversity with Action-Verified Synthetic Data for Robot Learning},
   author={Kim, Seungku and Jang, Suhyeok and Yoon, Byungjun and Kim, Dongyoung and Won, John and Shin, Jinwoo},
   journal={arXiv preprint arXiv:2602.18742},
   year={2026}
