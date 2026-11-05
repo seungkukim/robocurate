@@ -262,7 +262,7 @@
       margin-bottom: 0.25rem;
     }
 
-    /* TL;DR line under the main figure */
+    /* TL;DR line under the paper links */
     .tldr {
       max-width: 860px;
       margin: 1.25rem auto 0;
@@ -482,7 +482,23 @@
     }
     .publication-authors { color: var(--body); }
     .publication-authors sup { font-size: 0.65em; }
-    .publication-authors a { color: inherit; }
+    .publication-authors a { color: var(--accent) !important; }
+    .publication-authors a:hover { color: var(--accent) !important; text-decoration: underline; }
+
+    /* Venue badges in the accent green */
+    .venue-tags .tag.oral { background: var(--accent); color: #fff; }
+    .venue-tags a.tag.venue {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+    .venue-tags a.tag.venue:hover { background: var(--accent); color: #fff; }
+
+    /* Outcome badges: success in accent green, failure in the table's red */
+    .outcome-success,
+    .action-overview-grid .verdict.kept { background: var(--accent); }
+    .outcome-fail,
+    .action-overview-grid .verdict.dropped { background: var(--negative); }
 
     /* Body copy: left-aligned, comfortable measure */
     .content { color: var(--body); }
@@ -498,7 +514,16 @@
       border-radius: 0;
       box-shadow: none;
     }
-    .tldr { color: var(--body); font-size: 1rem; }
+    .tldr {
+      color: var(--body);
+      font-size: 1rem;
+      line-height: 1.65;
+      max-width: 720px;
+      margin: 1.5rem auto 0;
+      padding: 0.15rem 0 0.15rem 1rem;
+      text-align: left;
+      border-left: 3px solid var(--accent);
+    }
     .tldr strong { color: var(--accent); }
 
     /* Outline paper buttons */
@@ -646,21 +671,21 @@
           <h1 class="title is-1 publication-title"><span class="robocurate">RoboCurate</span>: Harnessing Diversity with Action-Verified Synthetic Data for Robot Learning</h1>
           <div class="tags has-addons venue-tags">
             <span class="tag is-medium oral">Oral</span>
-            <a class="tag is-medium venue" href="https://actiongapworkshop.github.io/#papers">CoRL 2026 Workshop on The Action Gap: Large Generative Models Learn Rich Knowledge</a>
+            <a class="tag is-medium venue" href="https://actiongapworkshop.github.io/" target="_blank" rel="noopener">CoRL 2026 Workshop on The Action Gap: Large Generative Models Learn Rich Knowledge</a>
           </div>
           <div class="is-size-5 publication-authors">
             <span class="author-block">
-              Seungku Kim<sup>1*</sup>,</span>
+              <a href="https://seungkukim.github.io/" target="_blank" rel="noopener">Seungku Kim</a><sup>1*</sup>,</span>
             <span class="author-block">
-              Suhyeok Jang<sup>1,2*</sup>,</span>
+              <a href="https://suhyeok-jang.github.io/" target="_blank" rel="noopener">Suhyeok Jang</a><sup>1,2*</sup>,</span>
             <span class="author-block">
-              Byungjun Yoon<sup>1</sup>,</span>
+              <a href="https://happyhappy-jun.github.io/" target="_blank" rel="noopener">Byungjun Yoon</a><sup>1</sup>,</span>
             <span class="author-block">
-              Dongyoung Kim<sup>1,2</sup>,</span>
+              <a href="https://kingdy2002.github.io/" target="_blank" rel="noopener">Dongyoung Kim</a><sup>1,2</sup>,</span>
             <span class="author-block">
-              John Won<sup>1</sup>,</span>
+              <a href="https://periphanes.github.io/" target="_blank" rel="noopener">John Won</a><sup>1</sup>,</span>
             <span class="author-block">
-              Jinwoo Shin<sup>1,2</sup></span>
+              <a href="https://alinlab.kaist.ac.kr/shin.html" target="_blank" rel="noopener">Jinwoo Shin</a><sup>1,2</sup></span>
           </div>
 
           <div class="is-size-7 publication-authors" style="margin-top:2px; color:#888;">
@@ -676,7 +701,7 @@
             <div class="publication-links">
               <!-- Paper (PDF) Link -->
               <span class="link-block">
-                <a href="https://openreview.net/pdf?id=EtgHh96v9D" target="_blank" rel="noopener"
+                <a href="https://arxiv.org/pdf/2602.18742" target="_blank" rel="noopener"
                    class="external-link button is-normal is-rounded is-dark">
                   <span class="icon">
                       <i class="fas fa-file-pdf"></i>
@@ -695,6 +720,9 @@
                 </a>
               </span>
             </div>
+            <p class="tldr">
+              <strong>TL;DR:</strong> Synthetic robot data offer a scalable way to train robot policies, but their action labels are often incorrect. <span class="robocurate">RoboCurate</span> enhances the quality of synthetic data by retaining only data whose actions are consistent with the generated video. To verify this, an attentive probe checks motion consistency between each video and a simulator replay of its actions.
+            </p>
           </div>
 
         </div>
@@ -711,9 +739,6 @@
       <img src="./static/images/robocurate_overview.jpg"
            alt="RoboCurate overview: scene diversification of real demonstrations via I2I/V2V editing, followed by action-verified filtering that replays IDM-predicted actions in a physics simulator and classifies motion consistency with an attentive probe"
            style="width:100%;">
-      <p class="tldr">
-        <strong>TL;DR:</strong> <span class="robocurate">RoboCurate</span> verifies the action labels of synthetic robot videos by replaying them in a simulator and keeping only samples whose motion matches the generated video.
-      </p>
     </div>
   </div>
 </section>
@@ -727,7 +752,7 @@
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
           <p>
-            We present <span class="robocurate">RoboCurate</span>, a novel framework for action-verified synthetic robot data that addresses inconsistencies between generated videos and annotated actions. Specifically, <span class="robocurate">RoboCurate</span> executes the actions predicted by an inverse dynamics model (IDM) in a simulator and verifies action consistency by measuring the motion agreement between the simulator rollout and the generated video. To better leverage such a framework, we further expand the scene diversity of synthetic data beyond the available dataset through off-the-shelf generative models with structured editing axes. We then use a VLM to pre-filter physically implausible generated videos before verifying their action labels.
+            We present <span class="robocurate">RoboCurate</span>, a novel framework for action-verified synthetic robot data that addresses inconsistencies between generated videos and annotated actions. Specifically, <span class="robocurate">RoboCurate</span> executes the actions predicted by an inverse dynamics model (IDM) in a simulator and verifies action consistency by measuring the motion agreement between the simulator rollout and the generated video. To better leverage such a framework, we further expand the scene diversity of synthetic data beyond the available dataset through off-the-shelf generative models with structured editing axes.
           </p>
         </div>
       </div>
@@ -780,7 +805,7 @@
 
         <div class="content has-text-justified" style="margin-top:1.5rem;">
           <p>
-            We train the probe without human labels, using positive and negative pairs automatically constructed from real demonstrations. A positive pair consists of a real video and the simulator replay of its own ground-truth actions. Negative pairs replace the replay with one from a different time in the same episode (temporal shift), from a different episode of the same skill (cross-episode), or both. Together, these negatives encourage the probe to detect fine-grained trajectory differences rather than rely on task-level cues.
+            We train the probe without human labels, using positive and negative pairs automatically constructed from real demonstrations. A positive pair consists of a real video and the simulator replay of its own ground-truth actions. Negative pairs replace the replay with one from a different time in the same episode (temporal shift), from a different episode of the same skill (cross-episode), or both. Together, these negatives encourage the probe to detect trajectory differences rather than rely on task-level cues.
           </p>
           <p>
             Beyond post-hoc filtering, the probe can also serve as a critic at generation time via <strong>Best-of-N sampling</strong>: we sample N candidate videos with their IDM-predicted actions, apply the VLM pre-filter, and select the pair with the highest motion-consistency score. This is particularly useful in data-scarce fine-tuning settings, where data collection is constrained to a specific target task.
@@ -1064,7 +1089,7 @@
     <div class="columns is-centered">
       <div class="column is-four-fifths">
         <div class="observation">
-          We observe that our scene diversification pipeline (i.e., I2I editing and V2V transfer) substantially improves downstream task performance. Moreover, our action-verified filtering is effective for curating synthetic robot data and further enhances robot policy performance, even with a smaller amount of pre-training data. Finally, our synthetic data demonstrates cross-embodiment transfer: a policy pre-trained on GR-1 humanoid synthetic data also benefits bimanual Panda arms with dexterous hands.
+          We observe that our scene diversification pipeline (i.e., I2I editing and V2V transfer) improves downstream task performance. Moreover, our action-verified filtering is effective for curating synthetic robot data and further enhances robot policy performance. Finally, our synthetic data demonstrates cross-embodiment transfer: a policy pre-trained on GR-1 humanoid synthetic data also benefits bimanual Panda arms with dexterous hands.
         </div>
       </div>
     </div>
@@ -1081,16 +1106,16 @@
         <h2 class="title is-3 has-text-centered">Takeaways</h2>
         <ol class="takeaways">
           <li>
-            <strong>Action-verified filtering removes suboptimal data.</strong>
-            Training with filtered data further improves performance in both pre-training and co-finetuning setups. The filter is trained on a small amount of real data, with positive and negative pairs generated automatically (no human labels required).
+            <strong>Action-verified filtering removes low-quality synthetic data.</strong>
+            Replaying IDM-predicted actions in a simulator turns action verification into a motion-consistency check. Curating synthetic data with this motion-consistency classifier improves VLA performance across simulation and real-world benchmarks.
           </li>
           <li>
-            <strong>The filter also works at generation time.</strong>
-            Used as a critic for Best-of-N sampling, it selects better-aligned synthetic samples when data is scarce.
+            <strong>Action-verified filter as a generation-time critic.</strong>
+            Used for Best-of-N sampling, the same probe selects better-aligned synthetic data, which is especially useful in data-scarce settings.
           </li>
           <li>
             <strong>Scene diversity matters.</strong>
-            Increasing the visual diversity of synthetic data leads to VLA performance gains, and our I2I editing and V2V transfer pipeline effectively enhances it.
+            I2I editing and V2V transfer improve downstream task performance and give the filter a more diverse pool to select from.
           </li>
         </ol>
       </div>
